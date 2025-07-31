@@ -5,18 +5,37 @@ include env_x86.mk
 
 OSPACK_IMAGE = $(DEBOS_DIR)/out/ospack-debian-arm64-trixie.tar.gz
 OSPACK_YAML = $(DEBOS_DIR)/opencca-ospack-debian.yaml
+DOWNLOAD_PREBUILT = $(DEBOS_DIR)/download-rock5b-opencca-artifacts.sh
+PREBUILT_DIR = $(DEBOS_DIR)/prebuilt
+
+CPUS = $(shell expr $(shell nproc) - 1)
+MEMORY = 6Gb
 
 .PHONY: debos clean
 
 build: rk3588 ## build root file system
  
 $(OSPACK_IMAGE): $(OSPACK_YAML)
+	sudo chmod 777 /dev/kvm
+
 	cd $(DEBOS_DIR) && \
 	mkdir -p out && \
-    debos  --artifactdir=out -t architecture:arm64 opencca-ospack-debian.yaml
+    debos --cpus=$(CPUS) --memory=$(MEMORY) --artifactdir=out -t architecture:arm64 opencca-ospack-debian.yaml
 
-rk3588: $(OSPACK_IMAGE)
+rk3588: $(OSPACK_IMAGE) download
+	sudo chmod 777 /dev/kvm
 	cd $(DEBOS_DIR) && \
-	debos  --artifactdir=out -t architecture:arm64 \
+	debos --cpus=$(CPUS) --memory=$(MEMORY) --artifactdir=out -t architecture:arm64 \
 		-t platform:rock5b-rk3588 opencca-image-rockchip-rk3588.yaml
 
+# Delete PREBUILT_DIR to re-download
+$(PREBUILT_DIR)/.downloaded:
+	mkdir -p $(PREBUILT_DIR)
+	bash $(DOWNLOAD_PREBUILT)
+	touch $@
+
+.PHONY: download
+download: $(PREBUILT_DIR)/.downloaded
+
+clean: ## clean
+	rm -r $(PREBUILT_DIR)

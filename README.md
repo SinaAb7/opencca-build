@@ -1,103 +1,50 @@
- [![build](https://github.com/opencca/opencca-build/actions/workflows/build.yaml/badge.svg)](https://github.com/opencca/opencca-build/actions/workflows/build.yaml) [![publish-container](https://github.com/opencca/opencca-build/actions/workflows/publish.yaml/badge.svg)](https://github.com/opencca/opencca-build/pkgs/container/opencca-build)
-
 # OpenCCA
 
+## Getting Started
 
-### Getting Started
+We build OpenCCA in an x86-docker container. Make sure to have the prerequiresites installed.
 
-We currently are building OpenCCA in an x86-docker container. To get started, ensure to have the following
-dependencies installed:
+### Install Prerequisites
+1. [Repo](https://gerrit.googlesource.com/git-repo)
+2. [Docker](https://docs.docker.com/engine/install/)
+3. make and git:
+```
+sudo apt install git make
+```
 
- > repo, git, make, docker
+> ⚠️ We need a recent version of Docker. Version 24.0.7 worked for us.
 
-<details>
-<summary>Prerequisite: Install git-repo tool</summary>
 
-For installation methods see https://gerrit.googlesource.com/git-repo
+### Download Code
+
+> 💡 **Tip:** A CI job reproduces the subsequent steps in a [tutorial](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml).
+
+Create the base directories and clone the code:
 
 ```sh
-# Manual installation:
+mkdir -p opencca/snapshot && cd opencca
 
-mkdir -p ~/.bin
-PATH="${HOME}/.bin:${PATH}"
-curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
-chmod a+rx ~/.bin/repo
+repo init -u https://github.com/opencca/opencca-manifest.git \
+    -b opencca/systex25 \
+    -m systex25.xml --depth=10
+
+repo sync --all -j5 --fetch-submodules
+
 ```
 
-
-</details>  
-
-<details>
-<summary>Prerequisite: Install docker</summary>
-
-For installation methods see https://docs.docker.com/engine/install/
+We provide a [development container](./docker/) ([registry](https://github.com/opencca/opencca-build/pkgs/container/opencca-build)) to cross-compile all artifacts. Pull and run it:
 
 ```sh
-# Docker on Ubuntu
-
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-
-
-sudo apt-get install docker-ce docker-ce-cli containerd.io \
-             docker-buildx-plugin docker-compose-plugin
-sudo chmod 777 /var/run/docker.sock
+cd opencca-build/docker
+make pull
+make start
+make enter # Enter the container
 ```
 
-Verify installation:
+### Build It
 
+Build all components (inside container)
 ```sh
-docker run hello-world
-```
-</details>  
-
-<details>
-<summary>Prerequisite: Install make</summary>
-
-```sh
-# On Ubuntu
-sudo apt install -y make
-```
-
-</details>
-
-<details>
-<summary>Prerequisite: Install git</summary>
-
-```sh
-# On Ubuntu
-sudo apt install -y git
-```
-
-</details>
-
-
-
-### Building OpenCCA
-```
-# Clone repositories
-mkdir opencca opencca/snapshot && cd opencca
-repo init -u git@github.com:opencca/opencca-manifest.git -b opencca/main -m systex25.xml 
-repo sync --all
-
-# Build and enter container
-make -f opencca-build/docker/Makefile help
-make -f opencca-build/docker/Makefile build
-make -f opencca-build/docker/Makefile start
-make -f opencca-build/docker/Makefile enter
-
-# Build all components (inside container)
 cd opencca-build/scripts/ && build_all.sh
 ```
 

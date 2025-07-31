@@ -1,0 +1,21 @@
+name: quick-start tutorial
+description: Runs steps from the readme to build OpenCCA.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: schedule-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  tutorial:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build OpenCCA
+        run: |
+          ./.github/workflows/tutorial/tutorial-on-host.sh

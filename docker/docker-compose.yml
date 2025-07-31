@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   opencca-build: # XXX: Must match SERVICE name in Makefile
     build:
@@ -19,13 +18,10 @@ services:
     volumes:
       - ../../:/opencca # project root
       - ~/.ccache:/home/opencca/.ccache  # Mount ccache directory
-      - .bash_history-root:/root/.bash_history  # Persist Bash history
-      - .fish_history-root:/root/.local/share/fish/fish_history  # Persist Fish history
       - .bash_history:/home/opencca/.bash_history  # Persist Bash history
       - .fish_history:/home/opencca/.local/share/fish/fish_history  # Persist Fish history
       - .cache/:/home/opencca/.cache
       
-
     environment:
       - CCACHE_DIR=/home/opencca/.ccache
 

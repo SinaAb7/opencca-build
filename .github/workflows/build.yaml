@@ -1,4 +1,4 @@
-name: build
+name: build-container
 #
 # opencca-build CI/build workflow
 #

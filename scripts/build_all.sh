@@ -51,8 +51,8 @@ function build_kvmtool {
 
 function build_linux {
     cd $BUILDCONF_DIR
-    make -f linux.mk kernel && \
-    make -f linux.mk debian 
+    ./linux.mk kernel && \
+    ./linux.mk DEBIAN_RELEASE_DIR="$SNAPSHOT_DIR/" debian
 }
 
 function build_firmware {
