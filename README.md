@@ -42,6 +42,10 @@ make enter # Enter the container
 ```
 
 ### Build It
+> 💡 **Tip:** Checkout the Tutorial Github Runner that builds the essential firmware components automatically:  
+>
+> 
+> [![quick-start tutorial](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml/badge.svg?branch=opencca%2Fmain)](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml)
 
 Build all components (inside container)
 ```sh
