@@ -17,16 +17,18 @@ sudo apt install git make
 
 ### Download Code
 
-> 💡 **Tip:** A CI job reproduces the subsequent steps in a [tutorial](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml).
+> 💡 **Tip:** A CI job reproduces the subsequent steps in a tutorial:  
+> [![quick-start tutorial](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml/badge.svg?branch=opencca%2Fmain)](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml)
 
 Create the base directories and clone the code:
 
 ```sh
 mkdir -p opencca/snapshot && cd opencca
 
+#  Use --depth=10 to reduce git history and speed up clone
 repo init -u https://github.com/opencca/opencca-manifest.git \
     -b opencca/systex25 \
-    -m systex25.xml --depth=10
+    -m systex25.xml
 
 repo sync --all -j5 --fetch-submodules
 
@@ -42,16 +44,12 @@ make enter # Enter the container
 ```
 
 ### Build It
-> 💡 **Tip:** Checkout the Tutorial Github Runner that builds the essential firmware components automatically:  
->
-> 
-> [![quick-start tutorial](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml/badge.svg?branch=opencca%2Fmain)](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml)
 
 Build all components (inside container)
 ```sh
 cd opencca-build/scripts/ && build_all.sh
 ```
 
-Upon build completion, you find all build artifacts in /opencca/snapshot.
-What's next is to flash the firmware on the hardware.
-https://github.com/opencca/opencca-flash
+Upon build completion, you find all build artifacts in `/opencca/snapshot.`
+What's next is to [flash the firmware](https://github.com/opencca/opencca-flash) on to the hardware.
+
