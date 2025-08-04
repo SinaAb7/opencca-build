@@ -17,7 +17,8 @@ sudo apt install git make
 
 ### Download Code
 
-> 💡 **Tip:** A CI job reproduces the subsequent steps in a tutorial:  
+> 💡 **Tip:** A CI job reproduces the subsequent steps in a tutorial:
+>   
 > [![quick-start tutorial](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml/badge.svg?branch=opencca%2Fmain)](https://github.com/opencca/opencca-build/actions/workflows/tutorial.yml)
 
 Create the base directories and clone the code:
