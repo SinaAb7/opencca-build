@@ -50,6 +50,7 @@ Build all components (inside container)
 ```sh
 cd opencca-build/scripts/ && build_all.sh
 ```
+> 💡 **Tip:** Read `build_all.sh` for instructions how to build the individual firmware components.
 
 Upon build completion, you find all build artifacts in `/opencca/snapshot.`
 What's next is to [flash the firmware](https://github.com/opencca/opencca-flash) on to the hardware.
