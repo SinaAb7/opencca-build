@@ -157,6 +157,10 @@ RUN apt-get update -y && apt-get install -y \
     user-mode-linux \
     golang \
     libglib2.0-dev \
+    crossbuild-essential-arm64 \
+    gcc-aarch64-linux-gnu \
+    g++-aarch64-linux-gnu \
+    binutils-aarch64-linux-gnu \
     libostree-dev \
     debootstrap \
     debhelper-compat \

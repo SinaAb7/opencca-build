@@ -1,6 +1,6 @@
 #!/bin/make -f
 
-include env_aarch64.mk
+include env.mk
 
 LOG = 50 ## set log level for tfa and rmm
 DEBUG = 1 ## set debug mode for tfa and rmm
@@ -28,7 +28,7 @@ BL31_ELF ?= $(TFA_DIR)/build/rk3588/$(TFA_BUILD_TYPE)/bl31/bl31.elf
 
 tfa: ## build tfa
 	@echo "Building TFA..."
-
+	@echo
 	@if [ "$(CLEAN_BUILD)" = "1" ]; then \
 		echo "Cleaning $(TFA_DIR)..."; \
 		rm -rf $(TFA_DIR)/build; \
@@ -38,6 +38,7 @@ tfa: ## build tfa
 	$(MAKE) -j$(NPROC) \
 		PLAT=rk3588 \
 		ENABLE_OPENCCA=1 \
+		TF_A_GCC_PATH=${CROSS_COMPILE} \
 		ENABLE_RME=1 \
 		DEBUG=$(DEBUG) \
 		LOG_LEVEL=$(LOG) \
@@ -76,6 +77,11 @@ rmm: ## build rmm
 	cd $(RMM_DIR) && \
 	cmake -S $(RMM_DIR)/ -B $(RMM_DIR)/build \
 		-DCROSS_COMPILE=$(CROSS_COMPILE) \
+		-DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+      		-DCMAKE_C_COMPILER=${CROSS_COMPILE}gcc \
+      		-DCMAKE_ASM_COMPILER=${CROSS_COMPILE}gcc \
+		-DCMAKE_OBJCOPY=${CROSS_COMPILE}objcopy \
+		-DCMAKE_OBJDUMP=${CROSS_COMPILE}objdump \
 		-DRMM_CONFIG=rk3588_defcfg \
 		-DLOG_LEVEL=$(LOG) \
 		-DCMAKE_BUILD_TYPE=$(RMM_BUILD_TYPE) \

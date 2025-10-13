@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-include env_aarch64.mk
+include env.mk
 
 SHELL := /bin/bash
 LOCALVERSION ?= -opencca-wip ## kernel version suffix
@@ -28,7 +28,11 @@ KERNEL_KCONFIG += \
 		-m RTW89_8825B \
 		-m RTW89_8852BE \
 		-m BINFMT_MISC \
-		-d RELR
+		-d RELR \
+		-d CPU_IDLE \
+		-d ARM_PSCI_CPUIDLE \
+		-d ARM_PSCI_CPUIDLE_DOMAIN \
+		-e PHY_ROCKCHIP_NANENG_COMBO_PHY
 
 .PHONY: kconfig
  # $(KERNEL_FRAGMENT) ## Generate .config file	

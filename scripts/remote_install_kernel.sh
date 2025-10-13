@@ -5,7 +5,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR=$SCRIPT_DIR/../../
 
 USER=user
-HOST=192.33.93.163
+#HOST=192.33.93.163
 
 
 # Sample entry

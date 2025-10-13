@@ -3,7 +3,7 @@
 # SNAPSHOT_DIR
 # KVMTOOL_DIR
 # CROSS_COMPILE
-include env_aarch64.mk
+include env.mk
 
 
 DTC_REPO := https://git.kernel.org/pub/scm/utils/dtc/dtc.git

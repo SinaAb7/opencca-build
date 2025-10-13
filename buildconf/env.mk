@@ -1,6 +1,6 @@
 .THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 .THIS_DIR :=  $(realpath $(dir $(.THIS_MAKEFILE)))
-ROOT_DIR := $(.THIS_DIR)/../../
+ROOT_DIR := $(.THIS_DIR)/../..
 
 KVMTOOL_DIR ?= $(ROOT_DIR)/kvmtool
 LINUX_DIR ?= $(ROOT_DIR)/linux

@@ -10,7 +10,8 @@ set -euo pipefail
 #   build_all.sh
 #
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-ENV_FILE=$SCRIPT_DIR/../buildconf/env.mk
+cd "$SCRIPT_DIR"
+ENV_FILE=$SCRIPT_DIR/../buildconf/env_x86.mk
 
 # Get environment from makefile
 eval "$(make -f $ENV_FILE print-vars | sed 's/^/export /')" &>/dev/null || true
@@ -24,19 +25,37 @@ BUILDCONF_DIR=$OPENCCA_BUILD_DIR/buildconf
 LOG_DIR="$SCRIPT_DIR/build_log"
 LOG_FILE="$LOG_DIR/stdout.log"
 
-build_quick_start=(
-    build_kvmtool
-    build_linux
-    build_firmware
-)
-
 build_all=(
     build_kvmtool
     build_linux
+    build_linux_guest
+    build_modules
     build_firmware
+    transfer_binaries
     build_debos_rootfs_host
 )
 
+build_kvmtool=(
+    build_kvmtool
+)
+build_linux=(
+    build_linux
+   # build_modules
+)
+build_linux_guest=(
+    build_linux_guest
+    build_modules
+)
+build_firmware=(
+    build_firmware
+)
+build_fs=(
+	build_debos_rootfs_host
+)
+
+build_modules=(
+    build_modules
+)
 declare -A build_status
 
 trap 'echo "Error on line $LINENO with exit code $?" && exit 1' ERR SIGINT
@@ -52,9 +71,17 @@ function build_kvmtool {
 function build_linux {
     cd $BUILDCONF_DIR
     make -f linux.mk kernel && \
-    make -f linux.mk debian 
+    make -f linux.mk debian
 }
-
+#function build_linux_guest {
+ #   cd $BUILDCONF_DIR
+  #  ./build-linux-guest-script.sh 
+#}
+function build_linux_guest {
+    cd $BUILDCONF_DIR
+    make -f linux_guest.mk kernel && \
+    make -f linux_guest.mk debian
+}
 function build_firmware {
     cd $BUILDCONF_DIR
     make -f firmware_opencca.mk build
@@ -63,6 +90,20 @@ function build_firmware {
 function build_debos_rootfs_host {
     cd $BUILDCONF_DIR
     make -f debos_rootfs_host.mk build
+}
+
+function build_modules {
+	cd  $SCRIPT_DIR/../../External_modules
+#	make clean
+	make
+#	cd $SCRIPT_DIR/../../suplementary-binaries
+#	make clean
+#	make
+}
+
+function transfer_binaries {
+rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../debian-image-recipes/prebuilt/u-boot-rock5b-rk3588/.
+rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../opencca-flash/flash/snapshot/.
 }
 
 function run_builds() {
@@ -91,14 +132,14 @@ function print_status() {
     done
 
     log "\nLog directory: $LOG_DIR"
-    log "Full log: $LOG_FILE\n"    
+    log "Full log: $LOG_FILE\n"
     log "Snapshot directory $SNAPSHOT_DIR:\n"
 
     for entry in $(ls $SNAPSHOT_DIR); do
         msg=$(printf "  %s" "$entry")
         log "$msg"
-    done 
-    
+    done
+
 }
 
 
@@ -113,10 +154,16 @@ echo "Executing command: ${1-} ..."
 build_seq=
 case "${1-}" in
     all) build_seq=${build_all[@]} ;;
-    quick_start) build_seq=${build_quick_start[@]} ;;
-    help) echo "$0 all|quick_start"; exit ;;
-    *) build_seq=${build_quick_start[@]} ;;
+    firmware) build_seq=${build_firmware[@]} ;;
+    kvmtool) build_seq=${build_kvmtool[@]} ;;
+    linux) build_seq=${build_linux[@]} ;;
+    linux_guest) build_seq=${build_linux_guest[@]} ;;
+    fs) build_seq=${build_fs[@]} ;;
+    modules) build_seq=${build_modules[@]} ;;
+    help) echo "$0 [all|firmware|kvmtool|linux|help]"; exit ;;
+    *) build_seq=${build_all[@]} ;;
 esac
 
 time run_builds ${build_seq[@]}
+transfer_binaries
 print_status

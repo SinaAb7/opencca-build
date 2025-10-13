@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 # DEBOS_DIR
-include env_aarch64.mk
+include env.mk
 
 .PHONY: debos clean
 
