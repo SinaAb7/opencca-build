@@ -28,8 +28,8 @@ mkdir -p opencca/snapshot && cd opencca
 
 #  Use --depth=10 to reduce git history and speed up clone
 repo init -u https://github.com/opencca/opencca-manifest.git \
-    -b opencca/systex25 \
-    -m systex25.xml
+    -b opencca/main \
+    -m opencca-devel.xml
 
 repo sync --all -j5 --fetch-submodules
 
