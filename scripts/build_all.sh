@@ -32,7 +32,6 @@ build_all=(
     build_modules
     build_firmware
     transfer_binaries
-    build_debos_rootfs_host
 )
 
 build_kvmtool=(
@@ -48,9 +47,6 @@ build_linux_guest=(
 )
 build_firmware=(
     build_firmware
-)
-build_fs=(
-	build_debos_rootfs_host
 )
 
 build_modules=(
@@ -102,7 +98,7 @@ function build_modules {
 }
 
 function transfer_binaries {
-rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../debian-image-recipes/prebuilt/u-boot-rock5b-rk3588/.
+#rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../debian-image-recipes/prebuilt/u-boot-rock5b-rk3588/.
 rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../opencca-flash/flash/snapshot/.
 }
 
@@ -158,7 +154,6 @@ case "${1-}" in
     kvmtool) build_seq=${build_kvmtool[@]} ;;
     linux) build_seq=${build_linux[@]} ;;
     linux_guest) build_seq=${build_linux_guest[@]} ;;
-    fs) build_seq=${build_fs[@]} ;;
     modules) build_seq=${build_modules[@]} ;;
     help) echo "$0 [all|firmware|kvmtool|linux|help]"; exit ;;
     *) build_seq=${build_all[@]} ;;
