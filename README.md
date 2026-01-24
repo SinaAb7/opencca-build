@@ -1,29 +1,12 @@
-# OpenCCA
+# OpenCCA Container
 
 
 ### Getting Started
 
-We currently are building OpenCCA in an x86-docker container. To get started, ensure to have the following
+To get started, ensure to have the following
 dependencies installed:
 
- > repo, git, make, docker
-
-<details>
-<summary>Prerequisite: Install git-repo tool</summary>
-
-For installation methods see https://gerrit.googlesource.com/git-repo
-
-```sh
-# Manual installation:
-
-mkdir -p ~/.bin
-PATH="${HOME}/.bin:${PATH}"
-curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
-chmod a+rx ~/.bin/repo
-```
-
-
-</details>  
+ > git, make, docker
 
 <details>
 <summary>Prerequisite: Install docker</summary>
@@ -84,21 +67,10 @@ sudo apt install -y git
 
 ### Building OpenCCA
 ```
-# Clone repositories
-mkdir opencca opencca/snapshot && cd opencca
-repo init -u git@github.com:opencca/opencca-manifest.git -b opencca/main -m systex25.xml 
-repo sync --all
-
 # Build and enter container
 make -f opencca-build/docker/Makefile help
 make -f opencca-build/docker/Makefile build
 make -f opencca-build/docker/Makefile start
 make -f opencca-build/docker/Makefile enter
-
-# Build all components (inside container)
-cd opencca-build/scripts/ && build_all.sh
 ```
 
-Upon build completion, you find all build artifacts in /opencca/snapshot.
-What's next is to flash the firmware on the hardware.
-https://github.com/opencca/opencca-flash
