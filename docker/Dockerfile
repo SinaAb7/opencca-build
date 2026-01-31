@@ -155,16 +155,12 @@ RUN apt-get update -y && apt-get install -y \
     mmdebstrap \
     pigz \
     user-mode-linux \
-    golang \
     libglib2.0-dev \
     crossbuild-essential-arm64 \
-    gcc-aarch64-linux-gnu \
-    g++-aarch64-linux-gnu \
     binutils-aarch64-linux-gnu \
     libostree-dev \
     debootstrap \
-    debhelper-compat \
-    gcc-aarch64-linux-gnu && \
+    debhelper-compat && \
     rm -rf /var/lib/apt/lists/*
 
 
@@ -185,13 +181,28 @@ RUN ccache --max-size=10G
 # Buildroot
 ENV FORCE_UNSAFE_CONFIGURE=1
 
+# ---- Install modern Go (pin version) ----
+ARG GO_VERSION=1.22.6
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates curl; \
+    rm -rf /var/lib/apt/lists/*; \
+    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tgz; \
+    rm -rf /usr/local/go; \
+    tar -C /usr/local -xzf /tmp/go.tgz; \
+    rm -f /tmp/go.tgz; \
+    ln -sf /usr/local/go/bin/go /usr/local/bin/go; \
+    go version
+
+# Install Debos
 # Install Debos
 ENV GOPATH=/build/gocode
-RUN go install -v github.com/go-debos/debos/cmd/debos@latest
-RUN /build/gocode/bin/debos --help
+RUN set -eux; \
+    go env; \
+    go install -v github.com/go-debos/debos/cmd/debos@latest; \
+    cp /build/gocode/bin/debos /usr/local/bin/
 
-ENV PATH="/build/gocode/bin:$PATH"
-
+RUN debos --help
 # Install Repo tool
 RUN curl -o /usr/local/bin/repo https://storage.googleapis.com/git-repo-downloads/repo && \
     chmod a+x /usr/local/bin/repo
