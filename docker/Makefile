@@ -3,7 +3,11 @@
 DOCKER_DIR := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
 DOCKER = docker
-DOCKER_COMPOSE = $(DOCKER) compose -f $(DOCKER_DIR)/docker-compose.yml
+# Stable per-clone project name (same folder => same name; different folder => different name)
+
+PROJECT := opencca-$(shell echo "$(realpath $(DOCKER_DIR))" | sha1sum | cut -c1-8)
+
+DOCKER_COMPOSE := $(DOCKER) compose -p $(PROJECT) -f $(DOCKER_DIR)/docker-compose.yml
 
 SRC_DIR = /opencca
 SHELL_HISTORY = $(DOCKER_DIR)/.bash_history $(DOCKER_DIR)/.fish_history

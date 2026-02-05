@@ -10,7 +10,6 @@ services:
         RELEASE_VCS_REF: ${RELEASE_VCS_REF}
         RELEASE_VERSION: ${RELEASE_VERSION}
     image: ghcr.io/opencca/opencca-build:latest
-    container_name: opencca-build
     hostname: opencca-build
     privileged: true
     network_mode: "host"
