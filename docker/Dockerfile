@@ -163,13 +163,6 @@ RUN apt-get update -y && apt-get install -y \
     debhelper-compat && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install -y dpkg-dev
-RUN dpkg --add-architecture arm64
-RUN apt-get update
-
-RUN apt-get install -y \
-  libc6-dev-arm64-cross \
-  libfdt-dev:arm64
 # Python
 RUN ln -s /usr/bin/python3 /usr/bin/python || true
 RUN pip3 install --no-cache-dir dtschema --break-system-packages
