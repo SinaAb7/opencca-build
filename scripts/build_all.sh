@@ -80,6 +80,7 @@ function build_linux_guest {
 }
 function build_firmware {
     cd $BUILDCONF_DIR
+    make -f firmware_opencca.mk clean
     make -f firmware_opencca.mk build
 }
 
@@ -99,7 +100,7 @@ function build_modules {
 
 function transfer_binaries {
 #rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../debian-image-recipes/prebuilt/u-boot-rock5b-rk3588/.
-rsync -av $SCRIPT_DIR/../../snapshot/lkvm $SCRIPT_DIR/../../debian-image-recipes/overlays/AgenTEE/.
+rsync -av $SCRIPT_DIR/../../snapshot/lkvm $SCRIPT_DIR/../../debian-image-recipes/overlays/CAEC/.
 rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../opencca-flash/flash/snapshot/.
 }
 

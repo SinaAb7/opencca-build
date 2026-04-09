@@ -32,7 +32,33 @@ KERNEL_KCONFIG += \
 		-d CPU_IDLE \
 		-d ARM_PSCI_CPUIDLE \
 		-d ARM_PSCI_CPUIDLE_DOMAIN \
-		-e PHY_ROCKCHIP_NANENG_COMBO_PHY
+		-e PHY_ROCKCHIP_NANENG_COMBO_PHY \
+		--set-val STMMAC_ETH y \
+		--set-val STMMAC_PLATFORM y \
+		--set-val DWMAC_ROCKCHIP y \
+		--set-val R8169 y \
+		--set-val DRM y \
+		--set-val DRM_ROCKCHIP y \
+		--set-val DRM_PANFROST y \
+		--set-val DRM_PANTHOR y \
+   		--set-val TUN y \
+		--set-val NETFILTER y \
+    	--set-val NETFILTER_ADVANCED y \
+    	--set-val NETFILTER_XTABLES y \
+    	--set-val NF_CONNTRACK y \
+    	--set-val NF_NAT y \
+    	--set-val IP_NF_IPTABLES y \
+    	--set-val IP_NF_FILTER y \
+    	--set-val IP_NF_NAT y \
+    	--set-val NETFILTER_XT_NAT y \
+    	--set-val NETFILTER_XT_MATCH_CONNTRACK y \
+    	--set-val NETFILTER_XT_TARGET_MASQUERADE y \
+		--set-val NF_TABLES y \
+        --set-val NF_TABLES_INET y \
+        --set-val NFT_CT y \
+        --set-val NFT_NAT y \
+        --set-val NFT_MASQ y
+		
 
 .PHONY: kconfig
  # $(KERNEL_FRAGMENT) ## Generate .config file	
@@ -79,14 +105,21 @@ kernel: kconfig ## build linux kernel
 	+$(MAKE) -C $(LINUX_DIR) KBUILD_IMAGE="arch/arm64/boot/Image" \
 		LOCALVERSION=$(LOCALVERSION) 
 
+	-cp -rf $(LINUX_DIR)/arch/arm64/boot/dts/rockchip/rk3588-rock-5b-plus.dtb $(SNAPSHOT_DIR)
 	-cp -rf $(LINUX_DIR)/arch/arm64/boot/Image $(SNAPSHOT_DIR)
+	-dtc -I dtb -O dts -o $(SNAPSHOT_DIR)/rk3588-rock-5b-plus.dts \
+		$(SNAPSHOT_DIR)/rk3588-rock-5b-plus.dtb > /dev/null 2>&1 &
 
 .PHONY: devel
 devel: ## Build kernel without re-generating .config first (devel)
 	+$(MAKE) -C $(LINUX_DIR) KBUILD_IMAGE=arch/arm64/boot/Image \
 		LOCALVERSION=$(LOCALVERSION) 
 
+	-cp -rf $(LINUX_DIR)/arch/arm64/boot/dts/rockchip/rk3588-rock-5b-plus.dtb $(SNAPSHOT_DIR)
 	-cp -rf $(LINUX_DIR)/arch/arm64/boot/Image $(SNAPSHOT_DIR)
+	-dtc -I dtb -O dts -o $(SNAPSHOT_DIR)/rk3588-rock-5b-plus.dts \
+		$(SNAPSHOT_DIR)/rk3588-rock-5b-plus.dtb > /dev/null 2>&1 &
+
 
 
 # ---------------
