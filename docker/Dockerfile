@@ -163,6 +163,20 @@ RUN apt-get update -y && apt-get install -y \
     debhelper-compat && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apt-get install -y dpkg-dev
+RUN dpkg --add-architecture arm64
+RUN apt-get update
+
+RUN apt-get install -y \
+  libc6-dev-arm64-cross \
+  libfdt-dev:arm64 \
+  libglib2.0-dev:arm64 \
+  libpixman-1-dev:arm64 \
+  libslirp-dev:arm64 \
+  zlib1g-dev:arm64
+# QEMU's configure looks for <cross-prefix>pkg-config, which bookworm does not
+# ship. pkgconf picks the aarch64 personality from the name it is run as.
+RUN ln -sf /usr/bin/pkgconf /usr/bin/aarch64-linux-gnu-pkg-config
 # Python
 RUN ln -s /usr/bin/python3 /usr/bin/python || true
 RUN pip3 install --no-cache-dir dtschema --break-system-packages

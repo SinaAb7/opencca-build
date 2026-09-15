@@ -3,6 +3,7 @@
 ROOT_DIR := $(.THIS_DIR)/../..
 
 KVMTOOL_DIR ?= $(ROOT_DIR)/kvmtool
+QEMU_DIR ?= $(ROOT_DIR)/qemu-diode
 LINUX_DIR ?= $(ROOT_DIR)/linux
 LINUX_GUEST_DIR ?=$(ROOT_DIR)/linux-guest
 TFA_DIR ?= $(ROOT_DIR)/trusted-firmware-a

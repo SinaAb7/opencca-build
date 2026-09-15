@@ -27,6 +27,7 @@ LOG_FILE="$LOG_DIR/stdout.log"
 
 build_all=(
     build_kvmtool
+    build_qemu
     build_linux
     build_linux_guest
     build_modules
@@ -36,6 +37,9 @@ build_all=(
 
 build_kvmtool=(
     build_kvmtool
+)
+build_qemu=(
+    build_qemu
 )
 build_linux=(
     build_linux
@@ -62,6 +66,11 @@ function log() { echo -e "${COLOR}$1${RESET}"; }
 function build_kvmtool {
     cd $BUILDCONF_DIR
     make -f kvmtool.mk build
+}
+
+function build_qemu {
+    cd $BUILDCONF_DIR
+    make -f qemu.mk build
 }
 
 function build_linux {
@@ -101,6 +110,14 @@ function build_modules {
 function transfer_binaries {
 #rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../debian-image-recipes/prebuilt/u-boot-rock5b-rk3588/.
 rsync -av $SCRIPT_DIR/../../snapshot/lkvm $SCRIPT_DIR/../../debian-image-recipes/overlays/CAEC/.
+# QEMU is optional: a tree that has never run build_all.sh qemu has no binaries.
+for bin in qemu-system-aarch64 ivshmem-server; do
+    if [ -e $SCRIPT_DIR/../../snapshot/$bin ]; then
+        rsync -av $SCRIPT_DIR/../../snapshot/$bin $SCRIPT_DIR/../../debian-image-recipes/overlays/CAEC/.
+    else
+        log "snapshot/$bin missing - run: build_all.sh qemu"
+    fi
+done
 rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../opencca-flash/flash/snapshot/.
 }
 
@@ -154,10 +171,11 @@ case "${1-}" in
     all) build_seq=${build_all[@]} ;;
     firmware) build_seq=${build_firmware[@]} ;;
     kvmtool) build_seq=${build_kvmtool[@]} ;;
+    qemu) build_seq=${build_qemu[@]} ;;
     linux) build_seq=${build_linux[@]} ;;
     linux_guest) build_seq=${build_linux_guest[@]} ;;
     modules) build_seq=${build_modules[@]} ;;
-    help) echo "$0 [all|firmware|kvmtool|linux|help]"; exit ;;
+    help) echo "$0 [all|firmware|kvmtool|qemu|linux|linux_guest|modules|help]"; exit ;;
     *) build_seq=${build_all[@]} ;;
 esac
 
