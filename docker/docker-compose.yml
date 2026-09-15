@@ -17,6 +17,8 @@ services:
       - "opencca-build:127.0.0.1"
     volumes:
       - ../../:/opencca # project root
+      - ../../../.repo:/.repo # repo tool's object store: board/*'s .git symlinks (repo keeps them outside the checkout, e.g. board/tf-rmm/.git -> ../../.repo/projects/board/tf-rmm.git) resolve here now that /opencca is board/, not its parent
+      - ../../:/board # same content as /opencca, second mountpoint: .repo's git-dirs point BACK at the worktree with a relative path that names the "board" directory literally (e.g. core.worktree = ../../../../../../board/tf-rmm/ext/mbedtls for the mbedtls submodule), so that name has to exist too, alongside /.repo
       - ~/.ccache:/root/.ccache  # Mount ccache directory
       - .bash_history:/root/.bash_history  # Persist Bash history
       - .fish_history:/root/.local/share/fish/fish_history  # Persist Fish history
