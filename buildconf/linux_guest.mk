@@ -32,7 +32,18 @@ KERNEL_KCONFIG += \
 		-d CPU_IDLE \
 		-d ARM_PSCI_CPUIDLE \
 		-d ARM_PSCI_CPUIDLE_DOMAIN \
-		-e PHY_ROCKCHIP_NANENG_COMBO_PHY
+		-e PHY_ROCKCHIP_NANENG_COMBO_PHY \
+		-e VIRT_DRIVERS \
+		-e ARM_CCA_GUEST \
+		-e IVSHMEM_NOTIFY \
+		-e VHOST_MENU \
+		-e VHOST \
+		-e VHOST_NET
+# The last six are the diode data path, as the main repo's shrinkwrap build
+# enables them (config/cca-3world-diode.yaml): the ivshmem_notify cross-VM
+# doorbell (under VIRT_DRIVERS, off in defconfig, as is the CCA guest driver
+# next to it) and the vhost-net datapath the diode VM's backend hands the
+# rings to.
 
 .PHONY: kconfig
  # $(KERNEL_FRAGMENT) ## Generate .config file	
