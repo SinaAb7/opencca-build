@@ -38,12 +38,15 @@ KERNEL_KCONFIG += \
 		-e IVSHMEM_NOTIFY \
 		-e VHOST_MENU \
 		-e VHOST \
-		-e VHOST_NET
-# The last six are the diode data path, as the main repo's shrinkwrap build
+		-e VHOST_NET \
+		-e FUSE_FS \
+		-e VIRTIO_FS
+# The last eight are the diode data path, as the main repo's shrinkwrap build
 # enables them (config/cca-3world-diode.yaml): the ivshmem_notify cross-VM
 # doorbell (under VIRT_DRIVERS, off in defconfig, as is the CCA guest driver
-# next to it) and the vhost-net datapath the diode VM's backend hands the
-# rings to.
+# next to it), the vhost-net datapath the diode VM's backend hands the rings
+# to, and virtio-fs (built in, FUSE_FS=m in defconfig would make it a module)
+# for the share served by the diode VM's virtio_fs_backend.
 
 .PHONY: kconfig
  # $(KERNEL_FRAGMENT) ## Generate .config file	
