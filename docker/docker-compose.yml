@@ -20,6 +20,7 @@ services:
       - ../../../.repo:/.repo # repo tool's object store: board/*'s .git symlinks (repo keeps them outside the checkout, e.g. board/tf-rmm/.git -> ../../.repo/projects/board/tf-rmm.git) resolve here now that /opencca is board/, not its parent
       - ../../:/board # same content as /opencca, second mountpoint: .repo's git-dirs point BACK at the worktree with a relative path that names the "board" directory literally (e.g. core.worktree = ../../../../../../board/tf-rmm/ext/mbedtls for the mbedtls submodule), so that name has to exist too, alongside /.repo
       - ~/.ccache:/root/.ccache  # Mount ccache directory
+      - ../../../overlays:/overlays # the main repo's overlays/, which manifest/overlays/sharedfs is a symlink into (../../../overlays/shared): that path has to resolve inside the container too, and /opencca is board/, so the target sits above it - same reason /.repo is mounted at the root
       - ~/.cargo:/opt/cargo:ro # the build machine's rustup, for the diode VM's I/O backend (manifest/build_io_backend.sh); read-only, cargo's cache goes to /root/.cache
       - ~/.rustup:/opt/rustup:ro
       - .bash_history:/root/.bash_history  # Persist Bash history
