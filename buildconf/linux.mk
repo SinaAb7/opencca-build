@@ -57,8 +57,23 @@ KERNEL_KCONFIG += \
         --set-val NF_TABLES_INET y \
         --set-val NFT_CT y \
         --set-val NFT_NAT y \
-        --set-val NFT_MASQ y
-		
+        --set-val NFT_MASQ y \
+		-m VHOST \
+		-m VHOST_NET
+# The last two give a VM's TAP NIC the in-kernel vhost-net datapath, which
+# run-realm.sh asks for by default (every VM not started with --net-shmem) and
+# which the network measurement of the main repo's docs/net-bench.md depends on
+# for a fair uplink - see linux_guest.mk for the same two in the guest, where
+# they serve the diode VM's own backend. TUN, which is what QEMU opens to make
+# the TAP, is already set above.
+#
+# Modules here, built in on the emulated host (the main repo's
+# config/rmi1-board-stack.yaml): this image installs modules and
+# run-realm.sh modprobes vhost_net before looking for /dev/vhost-net, while the
+# emulator's buildroot rootfs has no modules at all, so there it has to be =y.
+# Kconfig also caps VHOST_NET at m while CONFIG_TAP is m, which MACVTAP=m in
+# this defconfig makes it - the emulated host promotes that chain, the board
+# does not need to.
 
 .PHONY: kconfig
  # $(KERNEL_FRAGMENT) ## Generate .config file	
