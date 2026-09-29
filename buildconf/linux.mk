@@ -58,22 +58,34 @@ KERNEL_KCONFIG += \
         --set-val NFT_CT y \
         --set-val NFT_NAT y \
         --set-val NFT_MASQ y \
-		-m VHOST \
-		-m VHOST_NET
-# The last two give a VM's TAP NIC the in-kernel vhost-net datapath, which
+		-e MACVLAN \
+		-e MACVTAP \
+		-e VHOST_MENU \
+		-e VHOST \
+		-e VHOST_NET
+# The last five give a VM's TAP NIC the in-kernel vhost-net datapath, which
 # run-realm.sh asks for by default (every VM not started with --net-shmem) and
 # which the network measurement of the main repo's docs/net-bench.md depends on
-# for a fair uplink - see linux_guest.mk for the same two in the guest, where
-# they serve the diode VM's own backend. TUN, which is what QEMU opens to make
-# the TAP, is already set above.
+# for a fair uplink - see linux_guest.mk for the same in the guest, where they
+# serve the diode VM's own backend. TUN, which is what QEMU opens to make the
+# TAP, is already set above.
 #
-# Modules here, built in on the emulated host (the main repo's
-# config/rmi1-board-stack.yaml): this image installs modules and
-# run-realm.sh modprobes vhost_net before looking for /dev/vhost-net, while the
-# emulator's buildroot rootfs has no modules at all, so there it has to be =y.
-# Kconfig also caps VHOST_NET at m while CONFIG_TAP is m, which MACVTAP=m in
-# this defconfig makes it - the emulated host promotes that chain, the board
-# does not need to.
+# Built in, as on the emulated host (the main repo's
+# config/rmi1-board-stack.yaml): the host image installs no kernel modules,
+# so a vhost_net module would never reach the board and there would be no
+# /dev/vhost-net. VHOST_NET depends on (TAP || !TAP), and MACVTAP=m in the
+# arm64 defconfig selects TAP=m, which caps VHOST_NET at m - so MACVLAN and
+# MACVTAP are promoted to y with it. check_vhost_net refuses a config where
+# any of it ends up as a module.
+
+define check_vhost_net
+	@for symbol in TUN TAP VHOST VHOST_NET; do \
+		grep -qx "CONFIG_$$symbol=y" $(KERNEL_CONFIG) || { \
+			echo "ERROR: CONFIG_$$symbol must be built in for the host's vhost-net; check TUN/MACVLAN/MACVTAP and fragment overrides." >&2; \
+			exit 1; \
+		}; \
+	done
+endef
 
 .PHONY: kconfig
  # $(KERNEL_FRAGMENT) ## Generate .config file	
@@ -94,6 +106,7 @@ kconfig:
 
 	# Step 4: finalize
 	+$(MAKE) -C $(LINUX_DIR) ARCH=$(ARCH) olddefconfig
+	$(check_vhost_net)
 
 	# Optionally: save
 	-cp -f $(LINUX_DIR)/.config $(SNAPSHOT_DIR)/rk3588-kernel-config
@@ -112,6 +125,7 @@ kconfig_old: $(KERNEL_FRAGMENT) ## Generate .config file
 		$(KERNEL_CONFIG) \
 		$(KERNEL_FRAGMENT)
 
+	$(check_vhost_net)
 	-cp -rf $(LINUX_DIR)/.config $(SNAPSHOT_DIR)/rk3588-kernel-config
 
 .PHONY: kernel
