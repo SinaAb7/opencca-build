@@ -43,7 +43,13 @@ KERNEL_KCONFIG += \
 		-e VHOST \
 		-e VHOST_NET \
 		-e FUSE_FS \
-		-e VIRTIO_FS
+		-e VIRTIO_FS \
+		-e VSOCKETS \
+		-e VIRTIO_VSOCKETS \
+		-e VSOCKETS_LOOPBACK
+# AF_VSOCK and its virtio transport (net/vmw_vsock/virtio_transport.c with
+# the diode patches) for vsock over the diode; the loopback transport is what
+# vsock-bench.sh measures it against. Built in: the image loads no modules.
 # The options from VIRT_DRIVERS onward enable the diode data path, as the
 # main repo's shrinkwrap build does (config/cca-3world-diode.yaml):
 # the ivshmem_notify cross-VM
