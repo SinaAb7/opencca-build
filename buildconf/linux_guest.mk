@@ -42,6 +42,7 @@ KERNEL_KCONFIG += \
 		-e VHOST_MENU \
 		-e VHOST \
 		-e VHOST_NET \
+		-e VHOST_VSOCK \
 		-e FUSE_FS \
 		-e VIRTIO_FS \
 		-e VSOCKETS \
@@ -57,11 +58,13 @@ KERNEL_KCONFIG += \
 # next to it), the vhost-net datapath the diode VM's backend hands the rings
 # to, and virtio-fs (built in, FUSE_FS=m in defconfig would make it a module)
 # for the share served by the diode VM's virtio_fs_backend.
+# VHOST_VSOCK: vsock-backend.sh --vhost hands the vsock device's queues to
+# the diode VM's kernel the same way (vsock-bench.sh diode --vhost).
 # VHOST_NET depends on (TUN || !TUN) && (TAP || !TAP). MACVTAP=m
 # selects TAP=m and caps VHOST_NET at m; promote MACVLAN/MACVTAP to y.
 
 define check_vhost_net
-	@for symbol in TUN TAP VHOST VHOST_NET; do \
+	@for symbol in TUN TAP VHOST VHOST_NET VHOST_VSOCK; do \
 		grep -qx "CONFIG_$$symbol=y" $(KERNEL_CONFIG) || { \
 			echo "ERROR: CONFIG_$$symbol must be built in for the diode backend; check TUN/MACVLAN/MACVTAP and fragment overrides." >&2; \
 			exit 1; \
