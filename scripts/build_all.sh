@@ -56,6 +56,11 @@ build_firmware=(
 build_modules=(
     build_modules
 )
+# OpenShell is not in build_all: it needs the build machine's rustup mounted
+# (see buildconf/openshell.mk), which older containers lack.
+build_openshell=(
+    build_openshell
+)
 declare -A build_status
 
 trap 'echo "Error on line $LINENO with exit code $?" && exit 1' ERR SIGINT
@@ -71,6 +76,11 @@ function build_kvmtool {
 function build_qemu {
     cd $BUILDCONF_DIR
     make -f qemu.mk build
+}
+
+function build_openshell {
+    cd $BUILDCONF_DIR
+    make -f openshell.mk build
 }
 
 function build_linux {
@@ -172,10 +182,11 @@ case "${1-}" in
     firmware) build_seq=${build_firmware[@]} ;;
     kvmtool) build_seq=${build_kvmtool[@]} ;;
     qemu) build_seq=${build_qemu[@]} ;;
+    openshell) build_seq=${build_openshell[@]} ;;
     linux) build_seq=${build_linux[@]} ;;
     linux_guest) build_seq=${build_linux_guest[@]} ;;
     modules) build_seq=${build_modules[@]} ;;
-    help) echo "$0 [all|firmware|kvmtool|qemu|linux|linux_guest|modules|help]"; exit ;;
+    help) echo "$0 [all|firmware|kvmtool|qemu|openshell|linux|linux_guest|modules|help]"; exit ;;
     *) build_seq=${build_all[@]} ;;
 esac
 
