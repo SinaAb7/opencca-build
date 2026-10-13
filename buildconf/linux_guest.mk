@@ -43,6 +43,7 @@ KERNEL_KCONFIG += \
 		-e VHOST \
 		-e VHOST_NET \
 		-e VHOST_VSOCK \
+		-e SECURITY_LANDLOCK \
 		-e FUSE_FS \
 		-e VIRTIO_FS \
 		-e VSOCKETS \
@@ -74,13 +75,17 @@ KERNEL_KCONFIG += \
 # for the share served by the diode VM's virtio_fs_backend.
 # VHOST_VSOCK: vsock-backend.sh --vhost hands the vsock device's queues to
 # the diode VM's kernel the same way (vsock-bench.sh diode --vhost).
+# SECURITY_LANDLOCK: OpenShell's sandbox (openshell-sandbox, the workload
+# VM) refuses to start without Landlock ABI 3 or newer; SECURITY=y and
+# "landlock" in the default LSM list are already in defconfig. The
+# emulator's guest kernel has it (config/cca-3world-diode.yaml).
 # VHOST_NET depends on (TUN || !TUN) && (TAP || !TAP). MACVTAP=m
 # selects TAP=m and caps VHOST_NET at m; promote MACVLAN/MACVTAP to y.
 
 define check_vhost_net
-	@for symbol in TUN TAP VHOST VHOST_NET VHOST_VSOCK; do \
+	@for symbol in TUN TAP VHOST VHOST_NET VHOST_VSOCK SECURITY_LANDLOCK; do \
 		grep -qx "CONFIG_$$symbol=y" $(KERNEL_CONFIG) || { \
-			echo "ERROR: CONFIG_$$symbol must be built in for the diode backend; check TUN/MACVLAN/MACVTAP and fragment overrides." >&2; \
+			echo "ERROR: CONFIG_$$symbol must be built in (diode backends: TUN/MACVLAN/MACVTAP, VHOST_NET, VHOST_VSOCK; OpenShell sandbox: LANDLOCK); check fragment overrides." >&2; \
 			exit 1; \
 		}; \
 	done
