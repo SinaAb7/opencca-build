@@ -47,10 +47,24 @@ KERNEL_KCONFIG += \
 		-e VIRTIO_FS \
 		-e VSOCKETS \
 		-e VIRTIO_VSOCKETS \
-		-e VSOCKETS_LOOPBACK
+		-e VSOCKETS_LOOPBACK \
+		-e R8169 \
+		-e NF_CONNTRACK \
+		-e NF_NAT \
+		-e NETFILTER_XTABLES \
+		-e IP_NF_IPTABLES \
+		-e IP_NF_NAT \
+		-e IP_NF_TARGET_MASQUERADE
+# NF_* / IP_NF_* built in (defconfig makes them modules, and the guest image
+# installs no modules): the diode VM masquerades the workload VM's traffic out
+# of its passed-through NIC onto the lab LAN (net-bench.sh diode,
+# docs/net-bench.md), which needs iptables' MASQUERADE in the kernel.
 # AF_VSOCK and its virtio transport (net/vmw_vsock/virtio_transport.c with
 # the diode patches) for vsock over the diode; the loopback transport is what
 # vsock-bench.sh measures it against. Built in: the image loads no modules.
+# R8169 built in (defconfig makes it a module): the board's RTL8125 passed
+# through with vfio-pci (docs/nic-passthrough.md) then comes up without a
+# modprobe, which the guest image is not set up for.
 # The options from VIRT_DRIVERS onward enable the diode data path, as the
 # main repo's shrinkwrap build does (config/cca-3world-diode.yaml):
 # the ivshmem_notify cross-VM
