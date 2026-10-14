@@ -36,17 +36,32 @@ KERNEL_KCONFIG += \
 		-e VIRT_DRIVERS \
 		-e ARM_CCA_GUEST \
 		-e IVSHMEM_NOTIFY \
+		-e TUN \
+		-e MACVLAN \
+		-e MACVTAP \
 		-e VHOST_MENU \
 		-e VHOST \
 		-e VHOST_NET \
 		-e FUSE_FS \
 		-e VIRTIO_FS
-# The last eight are the diode data path, as the main repo's shrinkwrap build
-# enables them (config/cca-3world-diode.yaml): the ivshmem_notify cross-VM
+# The options from VIRT_DRIVERS onward enable the diode data path, as the
+# main repo's shrinkwrap build does (config/cca-3world-diode.yaml):
+# the ivshmem_notify cross-VM
 # doorbell (under VIRT_DRIVERS, off in defconfig, as is the CCA guest driver
 # next to it), the vhost-net datapath the diode VM's backend hands the rings
 # to, and virtio-fs (built in, FUSE_FS=m in defconfig would make it a module)
 # for the share served by the diode VM's virtio_fs_backend.
+# VHOST_NET depends on (TUN || !TUN) && (TAP || !TAP). MACVTAP=m
+# selects TAP=m and caps VHOST_NET at m; promote MACVLAN/MACVTAP to y.
+
+define check_vhost_net
+	@for symbol in TUN TAP VHOST VHOST_NET; do \
+		grep -qx "CONFIG_$$symbol=y" $(KERNEL_CONFIG) || { \
+			echo "ERROR: CONFIG_$$symbol must be built in for the diode backend; check TUN/MACVLAN/MACVTAP and fragment overrides." >&2; \
+			exit 1; \
+		}; \
+	done
+endef
 
 .PHONY: kconfig
  # $(KERNEL_FRAGMENT) ## Generate .config file	
@@ -67,6 +82,7 @@ kconfig:
 
 	# Step 4: finalize
 	+$(MAKE) -C $(LINUX_DIR) ARCH=$(ARCH) olddefconfig
+	$(check_vhost_net)
 
 	# Optionally: save
 	-cp -f $(LINUX_DIR)/.config $(SNAPSHOT_DIR)/rk3588-kernel-config
@@ -85,6 +101,7 @@ kconfig_old: $(KERNEL_FRAGMENT) ## Generate .config file
 		$(KERNEL_CONFIG) \
 		$(KERNEL_FRAGMENT)
 
+	$(check_vhost_net)
 	-cp -rf $(LINUX_DIR)/.config $(SNAPSHOT_DIR)/rk3588-kernel-config
 
 .PHONY: kernel
