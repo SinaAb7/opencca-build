@@ -118,7 +118,8 @@ function build_modules {
 }
 
 function transfer_binaries {
-#rsync -av $SCRIPT_DIR/../../snapshot/* $SCRIPT_DIR/../../debian-image-recipes/prebuilt/u-boot-rock5b-rk3588/.
+# No U-Boot goes to debian-image-recipes: the host disk carries no bootloader,
+# the firmware is flashed to the SPI NOR from opencca-flash/flash/snapshot.
 rsync -av $SCRIPT_DIR/../../snapshot/lkvm $SCRIPT_DIR/../../debian-image-recipes/overlays/CAEC/.
 # QEMU is optional: a tree that has never run build_all.sh qemu has no binaries.
 for bin in qemu-system-aarch64 ivshmem-server; do
@@ -141,10 +142,14 @@ function run_builds() {
 
     for func in "${build_order[@]}"; do
         log "\nBuilding $func...\n"
-        $func 2>&1 | tee -a "$LOG_DIR/$func.log" \
-            && build_status["$func"]="Success (see $func.log)" \
-            || { build_status["$func"]="Failed (see $func.log)"; }
-
+        # tee's status hides the build's, and the build runs in a subshell
+        # (set -e does not reach it): take the build's own exit status.
+        if $func 2>&1 | tee -a "$LOG_DIR/$func.log" && [[ ${PIPESTATUS[0]} -eq 0 ]]; then
+            build_status["$func"]="Success (see $func.log)"
+        else
+            build_status["$func"]="Failed (see $func.log)"
+            build_failed=1
+        fi
     done
 }
 
@@ -190,6 +195,15 @@ case "${1-}" in
     *) build_seq=${build_all[@]} ;;
 esac
 
+build_failed=0
 time run_builds ${build_seq[@]}
-transfer_binaries
+if [[ $build_failed -eq 0 ]]; then
+    transfer_binaries
+else
+    # Leave opencca-flash/flash/snapshot as it was: syncing now would hand
+    # flash.sh the previous build's firmware next to this build's other
+    # outputs, with nothing to tell them apart.
+    log "\nA build failed: snapshot/ NOT synced to opencca-flash/flash/snapshot/ - fix the build and rerun.\n"
+fi
 print_status
+exit $build_failed

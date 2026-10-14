@@ -90,7 +90,9 @@ rmm: ## build rmm
 	cd $(RMM_DIR) && \
 	cmake --build build $(RMM_CLEAN_FLAGS) -j$(NPROC)
 
-	cp -rf $(RMM_ELF) $(SNAPSHOT_DIR)/tf-rmm.elf || true
+	# No fallback: a missing rmm.elf must stop the build here, or U-Boot
+	# below packs whatever tf-rmm.elf the snapshot held before.
+	cp -rf $(RMM_ELF) $(SNAPSHOT_DIR)/tf-rmm.elf
 
 rmm-clean: ## clean rmm
 	-rm -r $(RMM_DIR)/build	
@@ -130,7 +132,15 @@ uboot: ## uboot build
 	-dtc -I dtb -O dts -o $(SNAPSHOT_DIR)/uboot-rk3588-rock-5b.dts \
 		$(SNAPSHOT_DIR)/uboot-rk3588-rock-5b.dtb > /dev/null 2>&1 &
 
+	# The FIT must carry the RMM: CONFIG_RMM_ELF_ADJUST_BASE in the fragment
+	# and RMM= above are what put it there, and a U-Boot without it boots a
+	# host with no realm world.
+	grep -q -a "atf-rmm" $(UBOOT_DIR)/u-boot.itb || \
+		{ echo "ERROR: $(UBOOT_DIR)/u-boot.itb carries no RMM image" >&2; exit 1; }
+
 	cd $(UBOOT_DIR) && cp -rf $(UBOOT_RELEASE) $(SNAPSHOT_DIR)
+
+	@echo "$$(grep -a -o 'U-Boot 20[0-9.]*-g[0-9a-f]* ([^)]*)' $(UBOOT_DIR)/u-boot.itb | head -1) -> $(SNAPSHOT_DIR)"
 
 uboot-clean: ## clean uboot
 	cd $(UBOOT_DIR) && $(MAKE) distclean
