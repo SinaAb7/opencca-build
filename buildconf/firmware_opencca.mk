@@ -3,6 +3,11 @@
 include env.mk
 
 LOG = 50 ## set log level for tfa and rmm
+# The RMM's per-SMC trace ("[ts_us=...] SMC_c40001b3 ... > 0 0 0 0" on the
+# console for every RSI call, including every RSI_SIGNAL_SEND) is compiled in
+# whenever RSI_LOG_LEVEL <= LOG_LEVEL; tf-rmm's default is 40. It costs a UART
+# write per call, inside the RMM, and ruins the signalling measurements.
+RSI_LOG_LEVEL = 0 ## RMM's RSI call trace (0 = off; 40 = on at LOG >= 40)
 DEBUG = 1 ## set debug mode for tfa and rmm
 ENABLE_OPENCCA_PERF = 1 ## enable opencca perf mode
 CLEAN_BUILD ?= 0 ## remove build files before build
@@ -84,6 +89,7 @@ rmm: ## build rmm
 		-DCMAKE_OBJDUMP=${CROSS_COMPILE}objdump \
 		-DRMM_CONFIG=rk3588_defcfg \
 		-DLOG_LEVEL=$(LOG) \
+		-DRSI_LOG_LEVEL=$(RSI_LOG_LEVEL) \
 		-DCMAKE_BUILD_TYPE=$(RMM_BUILD_TYPE) \
 		-DENABLE_OPENCCA_PERF=$(ENABLE_OPENCCA_PERF) 
 	 	
