@@ -44,6 +44,7 @@ KERNEL_KCONFIG += \
 		-e VHOST_NET \
 		-e VHOST_VSOCK \
 		-e SECURITY_LANDLOCK \
+		-e OVERLAY_FS \
 		-e FUSE_FS \
 		-e VIRTIO_FS \
 		-e VSOCKETS \
@@ -79,13 +80,17 @@ KERNEL_KCONFIG += \
 # VM) refuses to start without Landlock ABI 3 or newer; SECURITY=y and
 # "landlock" in the default LSM list are already in defconfig. The
 # emulator's guest kernel has it (config/cca-3world-diode.yaml).
+# OVERLAY_FS built in (a module in defconfig, and the image loads none):
+# Docker in the OpenClaw image (docker-install.sh; the one-VM baseline and
+# the diode launcher's sandbox container) then uses overlay2, so a
+# container starts on a view of its image instead of vfs's full copy.
 # VHOST_NET depends on (TUN || !TUN) && (TAP || !TAP). MACVTAP=m
 # selects TAP=m and caps VHOST_NET at m; promote MACVLAN/MACVTAP to y.
 
 define check_vhost_net
-	@for symbol in TUN TAP VHOST VHOST_NET VHOST_VSOCK SECURITY_LANDLOCK; do \
+	@for symbol in TUN TAP VHOST VHOST_NET VHOST_VSOCK SECURITY_LANDLOCK OVERLAY_FS; do \
 		grep -qx "CONFIG_$$symbol=y" $(KERNEL_CONFIG) || { \
-			echo "ERROR: CONFIG_$$symbol must be built in (diode backends: TUN/MACVLAN/MACVTAP, VHOST_NET, VHOST_VSOCK; OpenShell sandbox: LANDLOCK); check fragment overrides." >&2; \
+			echo "ERROR: CONFIG_$$symbol must be built in (diode backends: TUN/MACVLAN/MACVTAP, VHOST_NET, VHOST_VSOCK; OpenShell sandbox: LANDLOCK; Docker: OVERLAY_FS); check fragment overrides." >&2; \
 			exit 1; \
 		}; \
 	done
