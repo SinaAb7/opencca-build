@@ -8,6 +8,22 @@ LOG = 50 ## set log level for tfa and rmm
 # whenever RSI_LOG_LEVEL <= LOG_LEVEL; tf-rmm's default is 40. It costs a UART
 # write per call, inside the RMM, and ruins the signalling measurements.
 RSI_LOG_LEVEL = 0 ## RMM's RSI call trace (0 = off; 40 = on at LOG >= 40)
+# Confidential signalling's SGI wake-up (tf-rmm conf_sig 0004/0005): a
+# running peer realm gets its signal at once instead of on its next REC
+# entry. The RMM retires the SGI through the redistributors, so it needs
+# their address: the RK3588's GIC-600 has them at 0xfe680000, eight frames of
+# 128 KiB (GICD at 0xfe600000, as in the host's DT). CONF_SIG_SGI = 0 leaves
+# the base at 0 and the SGI off, i.e. delivery on next entry as before.
+# CONF_SIG_TRACE prints one RMM console line per signal; keep it 0 when
+# measuring, it is a UART write inside the RMM per send.
+CONF_SIG_SGI = 1 ## RMM wakes a running peer realm with an SGI (0 = next REC entry only)
+CONF_SIG_TRACE = 0 ## RMM console trace of every signal (0 = off)
+# (strip: the "## help" comment leaves a trailing space in the value)
+ifeq ($(strip $(CONF_SIG_SGI)),1)
+RMM_CONF_SIG_FLAGS = -DRMM_GICR_BASE=0xfe680000 -DRMM_GICR_FRAMES=8 -DPLAT_CMN_EXTRA_MMAP_REGIONS=2
+else
+RMM_CONF_SIG_FLAGS = -DRMM_GICR_BASE=0x0 -DRMM_GICR_FRAMES=0
+endif
 DEBUG = 1 ## set debug mode for tfa and rmm
 ENABLE_OPENCCA_PERF = 1 ## enable opencca perf mode
 CLEAN_BUILD ?= 0 ## remove build files before build
@@ -15,6 +31,7 @@ CLEAN_BUILD ?= 0 ## remove build files before build
 $(info using LOG=$(LOG))
 $(info using DEBUG=$(DEBUG))
 $(info using ENABLE_OPENCCA_PERF=$(ENABLE_OPENCCA_PERF))
+$(info using CONF_SIG_SGI=$(CONF_SIG_SGI) CONF_SIG_TRACE=$(CONF_SIG_TRACE))
 
 .PHONY: all tfa rmm uboot clean build
 
@@ -90,6 +107,8 @@ rmm: ## build rmm
 		-DRMM_CONFIG=rk3588_defcfg \
 		-DLOG_LEVEL=$(LOG) \
 		-DRSI_LOG_LEVEL=$(RSI_LOG_LEVEL) \
+		$(RMM_CONF_SIG_FLAGS) \
+		-DCONF_SIG_TRACE=$(CONF_SIG_TRACE) \
 		-DCMAKE_BUILD_TYPE=$(RMM_BUILD_TYPE) \
 		-DENABLE_OPENCCA_PERF=$(ENABLE_OPENCCA_PERF) 
 	 	
