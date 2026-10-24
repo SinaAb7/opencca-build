@@ -18,12 +18,21 @@ QEMU_CROSS_PREFIX ?= aarch64-linux-gnu-
 # slirp: -netdev user, which QEMU no longer carries in-tree.
 # tools: meson only descends into contrib/, where ivshmem-server lives,
 #        when tools are enabled.
+# linux-io-uring: the disk's aio=io_uring engine (run-realm.sh --thin-disk).
+#        Asked for explicitly so that a container without liburing-dev:arm64
+#        fails here, not on the board when the VM starts. The board host
+#        (trixie) has liburing.so.2 - its qemu-system-arm depends on it.
+# no linux-aio: aio=native would link libaio.so.1 from the bookworm container,
+#        and trixie only has libaio.so.1t64 (the time64 rename), so such a
+#        binary does not load on the board at all. io_uring is the engine.
 QEMU_CONFIGURE_FLAGS ?= \
 	--cross-prefix=$(QEMU_CROSS_PREFIX) \
 	--target-list=aarch64-softmmu \
 	--enable-kvm \
 	--enable-slirp \
 	--enable-tools \
+	--enable-linux-io-uring \
+	--disable-linux-aio \
 	--disable-docs \
 	--disable-werror \
 	--disable-sdl \
@@ -35,8 +44,21 @@ IVSHMEM_SERVER := $(QEMU_BUILD_DIR)/contrib/ivshmem-server/ivshmem-server
 .PHONY: all configure build clean stale-check
 all: build
 
-$(QEMU_BUILD_DIR)/build.ninja:
-	mkdir -p $(QEMU_BUILD_DIR)
+# The flags QEMU was last configured with, so that a change to
+# QEMU_CONFIGURE_FLAGS reconfigures an existing build directory instead of
+# being ignored: configure used to run only when build.ninja was missing, so
+# a flag added later (--enable-linux-io-uring) silently never reached the
+# binary. The stamp is rewritten only when its content differs, and
+# build.ninja depends on it; QEMU's configure handles an already configured
+# directory itself (it drops meson-private and runs meson setup again).
+CONFIGURE_STAMP := $(QEMU_BUILD_DIR)/.configure-flags
+.PHONY: force
+$(CONFIGURE_STAMP): force
+	@mkdir -p $(QEMU_BUILD_DIR)
+	@printf '%s\n' '$(QEMU_CONFIGURE_FLAGS)' | cmp -s - $@ || \
+		{ echo "qemu.mk: configure flags changed - reconfiguring"; printf '%s\n' '$(QEMU_CONFIGURE_FLAGS)' > $@; }
+
+$(QEMU_BUILD_DIR)/build.ninja: $(CONFIGURE_STAMP)
 	cd $(QEMU_BUILD_DIR) && $(QEMU_DIR)/configure $(QEMU_CONFIGURE_FLAGS)
 
 # meson bakes the absolute source path into the build directory (build.ninja,

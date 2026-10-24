@@ -174,6 +174,11 @@ RUN apt-get install -y \
   libpixman-1-dev:arm64 \
   libslirp-dev:arm64 \
   zlib1g-dev:arm64
+# liburing: aio=io_uring for the VM's disk (run-realm.sh --thin-disk), an
+# engine QEMU can pick at run time. Not libaio: the board host is trixie, where
+# the library is libaio.so.1t64, and a binary linked here would not load there.
+RUN apt-get install -y \
+  liburing-dev:arm64
 # QEMU's configure looks for <cross-prefix>pkg-config, which bookworm does not
 # ship. pkgconf picks the aarch64 personality from the name it is run as.
 RUN ln -sf /usr/bin/pkgconf /usr/bin/aarch64-linux-gnu-pkg-config
