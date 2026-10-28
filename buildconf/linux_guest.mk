@@ -56,7 +56,30 @@ KERNEL_KCONFIG += \
 		-e NETFILTER_XTABLES \
 		-e IP_NF_IPTABLES \
 		-e IP_NF_NAT \
-		-e IP_NF_TARGET_MASQUERADE
+		-e IP_NF_TARGET_MASQUERADE \
+		-e BLK_DEV_DM \
+		-e DM_CRYPT \
+		-e DM_INTEGRITY \
+		-e CRYPTO_XTS \
+		-e CRYPTO_HMAC \
+		-e CRYPTO_SHA256 \
+		-e CRYPTO_SHA512 \
+		-e CRYPTO_CHACHA20POLY1305 \
+		-e CRYPTO_CHACHA20_NEON \
+		-e CRYPTO_POLY1305_NEON \
+		-e CRYPTO_ADIANTUM \
+		-e CRYPTO_NHPOLY1305_NEON \
+		-e CRYPTO_AES_ARM64_BS
+# BLK_DEV_DM .. CRYPTO_AES_ARM64_BS built in (modules in defconfig, and the
+# image loads none): the workload root's encrypted file system (the main repo's
+# docs/workload-fs.md, build_direct_disk.sh --workload-fs ext4-crypt) is LUKS2 on dm-crypt
+# with dm-integrity, opened by cryptsetup at boot. The RK3588 has no AES
+# instructions (no aes/sha2/pmull in its Features), so the ciphers that count
+# are the NEON ones: ChaCha20-Poly1305 (the default authenticated cipher),
+# Adiantum (ChaCha12 + NH + one AES block), and bit-sliced NEON AES for the
+# AES-XTS variant; HMAC-SHA256/512 for the integrity variants and LUKS2's
+# header. ZFS (--workload-fs zfs) is out of tree: tools/build-zfs.sh builds
+# spl.ko/zfs.ko against this tree, so MODULES=y is all it needs here.
 # NF_* / IP_NF_* built in (defconfig makes them modules, and the guest image
 # installs no modules): the diode VM masquerades the workload VM's traffic out
 # of its passed-through NIC onto the lab LAN (net-bench.sh diode,
@@ -88,9 +111,9 @@ KERNEL_KCONFIG += \
 # selects TAP=m and caps VHOST_NET at m; promote MACVLAN/MACVTAP to y.
 
 define check_vhost_net
-	@for symbol in TUN TAP VHOST VHOST_NET VHOST_VSOCK SECURITY_LANDLOCK OVERLAY_FS; do \
+	@for symbol in TUN TAP VHOST VHOST_NET VHOST_VSOCK SECURITY_LANDLOCK OVERLAY_FS BLK_DEV_DM DM_CRYPT DM_INTEGRITY CRYPTO_CHACHA20POLY1305 CRYPTO_ADIANTUM CRYPTO_XTS MODULES; do \
 		grep -qx "CONFIG_$$symbol=y" $(KERNEL_CONFIG) || { \
-			echo "ERROR: CONFIG_$$symbol must be built in (diode backends: TUN/MACVLAN/MACVTAP, VHOST_NET, VHOST_VSOCK; OpenShell sandbox: LANDLOCK; Docker: OVERLAY_FS); check fragment overrides." >&2; \
+			echo "ERROR: CONFIG_$$symbol must be built in (diode backends: TUN/MACVLAN/MACVTAP, VHOST_NET, VHOST_VSOCK; OpenShell sandbox: LANDLOCK; Docker: OVERLAY_FS; encrypted workload root: DM_CRYPT/DM_INTEGRITY and the ciphers, MODULES for zfs.ko); check fragment overrides." >&2; \
 			exit 1; \
 		}; \
 	done
